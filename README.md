@@ -1,4 +1,4 @@
-# GloriaChen
+# King County Housing Market Analysis
 King County (WA) Housing Market Analysis
 The housing market is competitive in the city Seattle which located in King County which has 2 million population and the total area around 2300 square miles.
 
