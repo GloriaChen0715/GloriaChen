@@ -1,0 +1,132 @@
+---
+output: html_document
+---
+#### **To: Zillow Manager Chris Lee**  
+  
+#### **From: Gloria Chen/ Vanessa Yang**  
+  
+#### **Date: 10/12/2019**   
+  
+#### **RE: King County Housing Market Analysis**  
+
+***
+```{r include = FALSE}
+# Set chunk options for the file
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+```{r}
+# Course: 5210 Communicating Data
+# Purpose: Quick Project 1 
+# Date: Oct. 12, 2019
+# Professor: Gareth Green
+# Author: Gloria Chen, Vanessa Yang
+```
+
+
+```{r echo = FALSE}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+
+```{r echo = FALSE}
+# Load packages
+library(tidyverse)
+library(gridExtra)
+library(janitor)
+library(knitr)
+library(GGally)
+library(magrittr)
+```
+
+
+```{r message = FALSE, echo = FALSE}
+# Load data
+my_data <- read.csv("qp1_data.csv")
+```
+# Introduction 
+
+The housing market is competitive in the city Seattle which located in King County which has 2 million population and the total area around 2300 square miles.
+
+The market analysis could help us to better understand the current situation of the housing market. Moreover, it is an important way to evaluate the factors that might affect house prices and sales. A good analysis also can be an informative reference for real estate investment. So, thoroughly researching and understanding the market is crucial to good decision-making. Therefore, we are provided 21,613 observations of King County housing price and zip code, which also included sqft of house, number of bedrooms, year of built and so on.
+
+According to the King County housing data, we highlight some compelling results as below shown:
+
+1.  There is a peak point of the high median price from the house located at zip code: 98039 and 98004.
+2.  The highest sales are from the Redmond and follow by Redmond.
+3.  The highest housing demand goes to the house with three bedrooms.
+4.  The houses built from 1940 to 1950 have a lower median of price.
+5.  The house has a higher grade which toward the higher price and sqft_living.
+6.  The houses which have been renovated have a higher median price per square feet than the house without    
+    renovation.
+7.  The waterfront will increase the price. 
+
+For more detail of analysis, we came up with two specific and interesting findings to demonstrate, which we did some research and deep analysis.
+
+# Finding 1 - Main sales force city
+
+It is important to know the sales distribution, so we did a market share analysis to see which city brings the most transition.
+
+
+Since the profit of our company mainly comes from the commission of each successful deal, which is normally 10% of the deal price, we used the accumulative transition amount of each city as an index. This way is more appropriate to measure profit generate the ability of each city.
+
+
+In the beginning, intuitionally, we thought that since Seattle has the most population, it should occupy the must sale. However, after further analysis, we were surprised to find out that Redmond and Kirkland bring more than 10 % of the sale amount. This can be caused by the headquarter of Microsoft in Redmond, the safety and the good education system that these cities provide. Redmond has been ranked as the best city to live in King County by the website Niche for 2019.
+
+
+After knowing the main sales force city, we would like to know the local preference for housing, in order to find items that match their needs. For clearer picture, we only list out the factors strongly related to the price based on the previous analysis: bedrooms number, living space and initial condition of the house (grade)
+
+
+Buyers’ preference in Redmon is as follows.
+
+People in Redmond are mainly looking for a house with 3 or 4 bedrooms. around 2350 sqrt, and grade in 8. According to our research, people living in Redmon are mostly families with kids and incomes with higher than average. They can afford a higher price in the house but want a good environment for their children for better life quality.
+
+Buyers’ preference in Kirkland is as follow.
+
+![](mkt_share.png){width=500px}
+
+People in Kirkland are mainly looking for house with 3 or 4 bedrooms. around 2000 sqrt, and grade in 7. Basically, the demographic ditribution in Kirkland is similar to the one in Redmond, only with slight lower family income. This may be the reason why they are looking for house with slightly smaller living place and lower grade but come with more affordable price.
+
+
+# Finding 2 - The power of renovation
+
+There are 45 % of the house in King County are over 50 years. Even though the old houses are still in demand in the current house market, we want to find out if there is extra value the renovation can bring to the price. This can be a benefit for either our company or house owner.
+
+![](yr_built.png){width=2000px}
+
+As we mentioned before, there is a U shape in a relationship between year of built and median house price. It indicates that the house built from 1940 to 1970 has a lower median price than other years. However, when we did the comparison for house with the renovation and without renovation, there is a gap shows between two results. We use the price per square feet to do the comparison.
+
+![](reno_pic.png){width=2000px}
+
+We found that for most of the years that the price of the renovated house (green line) is almost higher the those without (red line). This result is even more obvious between the years 1950 to 1985. As it stands, we would strongly suggest the house owner to remodeling their house before selling it. Especially, if their house was built between 1950 to 1985, there is a high possibility that they could raise the sales price after renovation.
+
+# Conclusion
+
+Based on the analysis, we came up with several executive thoughts.
+
+Redmond and Kirkland contribute to more than 10 % of the sales. We should make sure that there are enough budget and personal support for these two cities. Besides, focusing on family needs when marketing, such as how safe the neighborhood is, the school quality and number of parks nearby. When qualifying sellers’ object, the price may not be the first priority, instead, we should check if the house comes in 3 or 4 bedrooms and with enough of space to live in, and also the grade of the house should not be lower than 6, otherwise it will be difficult to sell it. Moreover, we suggest if the type of house and the date of the deal can be added in the raw data, they could help us to determine the housing market more specifically.
+
+Through the detailed market analysis could help Zillow to focus on the correct side to help the customer or real estate investors to find out their appropriate property. We would like to discuss the analysis further if there is anything not clear or need to be elaborate more. Please do not hesitate to contact us.
+
+
+
+Reference : 
+https://www.niche.com/places-to-live/search/best-places-to-live/c/king-county-wa/
+https://www.neighborhoodscout.com/wa/seattle
+
+
+
+
+
+
+
+
+
+
+

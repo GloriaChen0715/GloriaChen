@@ -1,0 +1,445 @@
+---
+title: "Quick_Project_TA"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    
+author: "Gloria & Vanessa"
+date: "10/13/2019"
+---
+
+```{r}
+# Clear environment of variables and functions
+rm(list = ls(all = TRUE)) 
+
+# Clear environmet of packages
+if(is.null(sessionInfo()$otherPkgs) == FALSE)lapply(paste("package:", names(sessionInfo()$otherPkgs), sep=""), detach, character.only = TRUE, unload = TRUE)
+
+```
+
+# Load Package and Data
+```{r}
+#load package 
+library(gridExtra)
+library(GGally)
+library(tidyverse)
+library(gridExtra)
+
+#load data 
+my_data <- read.csv("qp1_data.csv")
+head(my_data)
+fig_s<- "fig.width = 6, fig.height = 3"
+```
+
+```{r}
+#add transit id
+tran_id <- c(1:nrow(my_data))
+my_data <- add_column(my_data, tran_id, .before = "price")
+head(my_data)
+```
+
+# Base EDA
+## Uni-variate non-graphical EDA
+
+```{r}
+str(my_data)
+```
+
+```{r}
+summary(my_data)
+```
+
+```{r}
+summary(my_data[,2:ncol(my_data)])
+```
+
+
+[Number of Bedrooms]
+```{r}
+#bedroom number count
+table(my_data$bedrooms)
+```
+
+Note: Since bedroom number is generally the first buyers’ priority, we concluded that the highest demand goes to the house with three bedrooms type.
+
+Question: with no bedroom? studio? a house with 33 bedrooms? may want to deal with it as an outlier.
+
+
+```{r}
+#pull out the 33 rooms entry
+my_data%>%filter(my_data$bedrooms==33)
+```
+
+Note: It might be a typo since there are only 1620 sq ft for living and one bathroom if I have the authority I will remove this data.
+
+
+[Number of floors]
+```{r}
+#floor numer count
+table(my_data$floor)
+```
+
+[Transition in different zip code]
+```{r}
+table(my_data$zip_code)
+```
+
+
+## Uni-variate graphical EDA
+
+[Price,sqft_live,sqft_lot Distribution]
+
+```{r}
+grid.arrange( 
+  
+ggplot(my_data, aes(x= price)) + geom_histogram(),
+ggplot(my_data,aes(x=sqft_living))+geom_histogram(),
+ggplot(my_data,aes(x=sqft_lot))+geom_histogram(),
+ncol=1
+)
+```
+
+Note: Price, sqft_living, sqft_lot distribution are all skewed. It's better use median instead of mean later. 
+
+[floors, bedrooms, bathrooms Distribution]
+```{r}
+grid.arrange( 
+  
+ggplot(my_data, aes(x= floors)) + geom_histogram(stat="count"),
+ggplot(my_data, aes(x=bedrooms)) + geom_histogram(stat="count"),
+ggplot(my_data, aes(x=bathrooms)) + geom_histogram(stat="count"),
+ncol=1
+)
+```
+
+Finding:
+Most of houses have 1 to 2 floors.
+Most of houses have 3 to 4 rooms.
+Most of houses have 1 or 2.5 bathrooms.
+
+
+[House Location Distribution]
+
+```{r,fig_s}
+ggplot(my_data,aes(x=zip_code))+geom_bar()
+```
+
+Note: House distribution in each zone is not even.
+
+[Bedroom Number Distribution]
+```{r}
+#just for checking the outlier house 
+ggplot(my_data,aes(x=bedrooms))+geom_bar()+coord_cartesian(xlim=c(0,11))
+```
+
+Note: The market is looking for a house with three or four bedrooms.
+
+[Year of Built Distribution]
+```{r}
+yr_built_pic <- ggplot(my_data,aes(x=yr_built))+geom_bar(stat = "count") +
+theme( axis.text.x = element_text(size=10))
+ggsave(filename = "yr_built.png",width = 8, height = 5, plot = yr_built_pic)
+```
+
+Note: House built from 2014 has highest number among King County area.
+
+## multi-variate non-graphical EDA
+
+[Price & zip_code]
+
+```{r}
+zip_price <- my_data %>%
+  group_by(zip_code) %>%
+  summarize(median(price, na.rm = TRUE))
+
+colnames(zip_price)[2] <- "h_price"
+
+zip_price
+```
+
+Note:House located in 98004/98039/98112	are pretty expensive, which can due to specific attribution with that area, a graph may demonstrate better.
+
+[Bedroom & Bathroom]
+
+```{r}
+table(my_data$bedrooms,my_data$bathroom)
+```
+
+Note: more bedrooms with more bathrooms normally
+
+*The 33 rooms house only has 1.75 bathroom
+
+
+[Floor & View]
+```{r}
+table(my_data$floor,my_data$view)
+```
+
+Note: buildings with more floors are more likely with a better view
+
+
+## Multi-variate graphical EDA
+
+Which attribution affect the price most
+```{r}
+#Clean data for ploting 
+plot_data <- data.frame(my_data)
+plot_data$floors <- as.factor(plot_data$floors)
+plot_data$bedrooms <- as.factor(plot_data$bedrooms)
+plot_data$bathrooms <- as.factor(plot_data$bathrooms)
+plot_data$view <- as.factor(plot_data$view)
+plot_data$waterfront <- as.factor(plot_data$waterfront)
+plot_data$grade <- as.factor(plot_data$grade)
+plot_data$condition <- as.factor(plot_data$condition)
+
+summary(plot_data)
+```
+
+
+```{r fig.width = 10, fig.height = 20}
+
+grid.arrange(
+
+ggplot(plot_data,aes(x=plot_data$bedrooms,y=price))+geom_boxplot(),
+ggplot(plot_data,aes(x=plot_data$bathrooms,y=price))+geom_boxplot(),
+ggplot(plot_data,aes(x=plot_data$sqft_living,y=price))+geom_point()+stat_smooth(method = "lm"),
+ggplot(plot_data,aes(x=plot_data$sqft_lot,y=price))+geom_point()+stat_smooth(method = "lm"),
+ggplot(plot_data,aes(x=plot_data$floors,y=price))+geom_boxplot(),
+ggplot(plot_data,aes(x=plot_data$waterfront,y=price))+geom_boxplot(),
+ggplot(plot_data,aes(x=plot_data$view,y=price))+geom_boxplot(),
+ggplot(plot_data,aes(x=plot_data$grade,y=price))+geom_boxplot(),
+ggplot(plot_data,aes(x=plot_data$condition,y=price))+geom_boxplot(),
+
+ncol=2
+)
+
+```
+
+Findings:
+The relation between each factor and price are a bellow : 
+-  A number of bedrooms increases, price increases, but the effect goes less significant when it's more than 5 bedrooms.
+-  Number of bathroom increases, price increases,
+-  Both spaces of living and lot have a positive relationship with price, but living space has more power than a lot space.
+- Building with more floors at a higher price. However, the price reaches its peak at 2.5 floors and then drop.
+-  The view doesn't really increase the value of the house. However, the waterfront view significantly did. 
+-  The initial quality of the building is decisive to price, but the maintenance no so much.
+
+[Price and Zip_code]
+```{r, fig.width = 6, fig.height = 10}
+#group the zip_code
+zip_price <- my_data %>%
+  group_by(zip_code) %>%
+  summarize(median(price, na.rm = TRUE))
+
+colnames(zip_price)[2] <- "h_price"
+zip_price
+
+```
+
+```{r fig.width = 6, fig.height = 10}
+#plotting 
+ggplot(zip_price,aes( x=reorder(zip_code,h_price),y=h_price))+geom_bar(stat = "identity")+coord_flip()+ geom_hline(yintercept=median(my_data$price), color= "red")
+
+```
+
+Question : why the house located in 98039 98004 98040 98112 are more expensive than others?
+
+[Prcie & space of living ]
+```{r}
+new_d <- my_data%>%filter(bedrooms<=8)
+new_d$bedrooms <- as.factor(new_d$bedrooms)
+ggplot(new_d,aes(x=sqft_living , y= price,color=bedrooms))+geom_point(alpha = 0.5,size=1)+stat_smooth(method="lm",se=FALSE)
+```
+
+Findings :
+-  More sqft_living increase the price, this phenomenon will be more significant if there are more rooms in the house
+- But the effect of sqft to price drops when there 7 rooms in the house, may due to the over-divided interior design
+- The effect bounces back when house has 8 rooms, but there are only 18 observations of this group. I don't really trust this 
+
+```{r}
+#pull out all house with 8 room to check if there are other factor that may affect the price 
+summary(my_data %>% filter(bedrooms==8))
+```
+
+Finding :
+The house with 8 rooms is more expenxive even the living space doesn't increase may because this group is comparatively higher in grade and condition. However, interestingly, they barely come with a view or waterfront view, which intuitionally will cause the price to decrease. 
+
+[Price and year built]
+
+```{r}
+library(tidyverse)
+plot_data %>% group_by(yr_built) %>% summarize(med_pri = median(price)) %>% ggplot(mapping = aes(x = yr_built, y = med_pri)) + geom_line()
+
+```
+
+Finding: The relation comes in a U shape, maybe people like the old house for its vintage style and the new one for its condition.
+
+[Price Trend & Floors]
+!! Premise !!! The transaction record is chronological 
+
+```{r}
+ggplot(my_data[1:5000,],aes(x=tran_id, y=price))+geom_line()+facet_grid(floors~.)
+
+```
+
+Finding: The price change pattern is not the same in different bedrooms group.
+
+
+# Findings (Executive Advice )
+## Main sales force city
+
+Tartget: Find out which city and what kind of house occupied the most sale
+
+```{r fig.width = 6, fig.height = 10}
+# group by zip_code, but take sum of the price for sales force analysis
+zip_price_sum <- my_data %>%
+  group_by(zip_code) %>%
+  summarize(sum(price, na.rm = TRUE))
+
+colnames(zip_price_sum)[2] <- "h_price"
+zip_price_sum <- zip_price_sum%>%arrange(-h_price)
+
+# Let's look at the zip_code price sum 
+ggplot(zip_price_sum,aes( x=reorder(zip_code,h_price),y=h_price))+geom_bar(stat = "identity")+coord_flip()
+```
+
+```{R}
+# try to find which city sales the most. Intuitionally, Seattle should occupy the most sales.
+# 98102-98199 - Seattle 
+Seattle_sales<- my_data %>% filter(zip_code%in% c(98102,98199))%>%summarise(sum(price))
+Seattle_market_share <- as.double(Seattle_sales / sum(my_data$price))
+
+
+#We will also check some city from the top
+#98004-98009 bellevue
+bellevue_sales<- my_data %>% filter(zip_code%in%c(98004,98009))%>%summarise(sum(price))
+bellevue_market_share <- as.double(bellevue_sales / sum(my_data$price))
+
+#98040 Mercer island
+mercer_sales<- my_data %>% filter(zip_code==98040)%>%summarise(sum(price))
+mercer_market_share <- as.double(mercer_sales/sum(my_data$price))
+
+#98052 53 Redmond
+Redmond_sales<- my_data %>% filter(zip_code%in%c(98052,98053))%>%summarise(sum(price))
+Redmond_market_share <- as.double(Redmond_sales/sum(my_data$price))
+
+# 98033 98034 kirkland
+kirkland_sales<- my_data %>% filter(zip_code%in%c(98033,98034))%>%summarise(sum(price))
+kirkland_market_share <- as.double(kirkland_sales/sum(my_data$price))
+kirkland_market_share
+```
+
+
+```{r, fig.width = 5, fig.height =3}
+#gather data for plotting
+mkt_share <- c(Seattle_market_share,bellevue_market_share,mercer_market_share,Redmond_market_share,kirkland_market_share)
+mkt_city <- c("Seattle","Bellevue","Mercer Island","Redmond","kirkland")
+mkt <- data.frame(mkt_city,mkt_share )
+
+#plotting
+mkt_share <- ggplot(mkt, aes(x= mkt_city,y=mkt_share))+geom_bar(stat = "identity")+labs(title = "Main Sales Force Market Share", x="City",y ="Market Share")+ geom_text(aes(label=round(mkt_share,2)),color = "DarkGreen",vjust=-0.10)+theme_classic()
+mkt_share
+
+ggsave("mkt_share.png")
+```
+
+Finding: Redmond makes most of the money, followed by Kirkland.
+
+```{r}
+#Now let check what type of houese these buyers are looking for
+# We will foucusing on the more relevant factor based on previous analysis: bedrooms, sqrt_living and  
+# Redmon
+Redmon_sales<- plot_data%>%filter(zip_code%in%c(98052,98053))
+summary(Redmon_sales)
+
+```
+```{r}
+#plotting for choice preference 
+ggplot(Redmon_sales, aes(y=sqft_living ,x=grade, color= bedrooms))+geom_point(alpha=0.2)+ geom_hline(yintercept=quantile(Redmon_sales$sqft_living),probs=.25,color= "red",linetype="dashed", size=0.5)+ geom_jitter()+labs(title = "Redmon Customer Preference", x="Grade",y ="Living Space(Sqrt)",color="Bedrooms")
+
+ggsave("Remond_mkt.png")
+```
+
+Finding:
+Poeple in Redmon are mainly looking for house with 3 or 4 bedrooms. around 2350 sqrt, and grade in 8.
+
+```{r}
+#Kirkland
+Kirkland_sales<- plot_data%>%filter(zip_code%in%c(98033,98034))
+summary(Kirkland_sales)
+```
+
+```{r}
+#plotting for choice preference 
+ggplot(Kirkland_sales, aes(y=sqft_living ,x=grade, color= bedrooms))+geom_point(alpha=0.2)+ geom_hline(yintercept=quantile(Kirkland_sales$sqft_living),probs=.25,color= "red",linetype="dashed", size=0.5)+ geom_jitter()+labs(title = "Kirkland Customer Preference", x="Grade",y ="Living Space(Sqrt)",color="Bedrooms")
+
+ggsave("Kirkland_mkt.png")
+```
+
+Finding:
+Poeple in Kirkland are mainly looking for house with 3 or 4 bedrooms. around 2000 sqrt, and grade in 7
+
+
+## The power of rennovation
+
+Tartget: Find out how much value the renovation can bring to the price 
+```{r}
+# We use price per sqft as idex, for ruling out the effect of house size
+t_data <- data.frame(my_data)
+t_data$sqrt_price <- t_data$price/ t_data$sqft_living
+#head(t_data)
+
+# add one more column
+for(i in 21613){
+  t_data$renovated <- NA
+}
+
+
+# put in data
+
+t_data$renovation <- ifelse(t_data$yr_renovated ==0, "N", "Y")
+head(t_data)
+```
+
+
+```{r fig.width = 15, fig.height = 50}
+#plot the price increse 
+t_data$yr_built <- as.factor(t_data$yr_built)
+
+ggplot(t_data,aes(x=yr_built,y=price,color = renovation))+geom_boxplot()+coord_flip()
+```
+
+Note: There's a real difference in price the renovation can bring. But we try to focus more on how much the difference 
+
+
+```{r}
+# prepare data 
+reno_power <- t_data%>%group_by(renovation,yr_built)%>%summarise(median(sqrt_price))
+colnames(reno_power)[3] <- "price"
+head(reno_power)
+```
+
+```{r fig.width = 16 , fig.height = 10}
+#plot the difference
+reno_pic <- ggplot(reno_power,aes(x = yr_built, y=price, group = renovation)) + 
+geom_line(aes(color=renovation), size = 2.0) +
+labs(fill = "Renovation", size=10.0) +
+ggtitle("The difference between renovation and without renovation") +
+ylab("Median of Price per sqft") +
+labs(fill = "Renovation") +
+theme(plot.title = element_text(face="bold", size=20)) +
+theme(axis.title = element_text(face="bold", size=17), axis.text.x = element_text(size=6,angle=45), axis.text.y = element_text(size=10))
+```
+
+Finding: The price of of renovated houese( blue line) is almost always higher the those without(red). And sometime is times of difference.
+
+```{r}
+ggsave(filename = "reno_pic.png", width = 16, height = 10, plot = reno_pic)
+```
+
+
+
+
